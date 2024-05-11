@@ -1,6 +1,6 @@
 {
   "name": "water-intake-control-backend",
-  "type": "module",
+  "type": "commonjs",
   "main": "server.js",
   "scripts": {
     "start": "node ./src/app.js",
