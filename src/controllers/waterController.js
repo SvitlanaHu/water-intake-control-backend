@@ -1,4 +1,4 @@
-const Water = require("../models/Water");
+const Water = require("../src/models/Water");
 
 exports.getWaters = async (req, res) => {
     try {
