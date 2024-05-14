@@ -8,6 +8,8 @@ import usersRouter from "./routes/usersRouter.js";
 import waterRouter from "./routes/waterRouter.js";
 import dotenv from "dotenv";
 import sgMail from "@sendgrid/mail";
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 
 dotenv.config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -15,6 +17,28 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Node.js API for Water Tracking App',
+      version: '1.0.0',
+      description: 'This is a simple CRUD API for managing users and water consumption data, documented with Swagger',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000', //need to change
+        description: 'Development server',
+      },
+    ],
+  },
+  apis: [path.join(__dirname, 'swaggerDocumentation.js')], 
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+
 
 app.use(morgan("tiny"));
 app.use(cors());
@@ -24,6 +48,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/users", usersRouter);
 app.use("/api/water", waterRouter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const connectDB = async () => {
   try {
