@@ -31,7 +31,7 @@ module.exports = {
         'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
         'import/prefer-default-export': 'off',
         'import/extensions': ['error', { js: 'always' }],
-        indent: ['warn', 2, { SwitchCase: 1 }],
+        indent: ['warn', 4, { SwitchCase: 1 }],
         'linebreak-style': 'off',
         'max-classes-per-file': 'off',
         'newline-per-chained-call': 'error',

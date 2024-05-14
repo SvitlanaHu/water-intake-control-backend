@@ -16,10 +16,11 @@ app.use((_, res) => {
     res.status(404).json({
         status: 404,
         message: "Endpoint not found"
-    })
-})
+    });
+});
 
-app.use((err, _, res, __) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, _, res, next) => {
     const { status = 500, message = "Server error" } = err;
     res.status(status).json({
         status,
@@ -27,6 +28,7 @@ app.use((err, _, res, __) => {
     });
 });
 
+// eslint-disable-next-line no-console
 app.listen(3000, () => {
     console.log("Server is running. Use our API on port: 3000");
 });
