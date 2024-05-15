@@ -8,7 +8,7 @@
       "email": "support@example.com"
     }
   },
-  "host": "localhost:3000",
+  "host": "water-intake-control-backend.onrender.com",
   "basePath": "/api",
   "tags": [
     {
@@ -30,6 +30,7 @@
         "operationId": "registerUser",
         "consumes": ["application/json"],
         "produces": ["application/json"],
+        "security":[],
         "parameters": [
           {
             "in": "body",
@@ -62,6 +63,7 @@
         "operationId": "loginUser",
         "consumes": ["application/json"],
         "produces": ["application/json"],
+        "security":[],
         "parameters": [
           {
             "in": "body",
