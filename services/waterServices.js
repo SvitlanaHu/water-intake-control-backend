@@ -35,16 +35,16 @@ async function getDailyWater(date, timezone, ownerId) {
     },
     {
       $group: {
-        _id: null, 
-        totalVolume: { $sum: "$volume" }, 
-        count: { $sum: 1 } 
+        _id: null,
+        totalVolume: { $sum: "$volume" },
+        count: { $sum: 1 }
       }
     },
     {
       $project: {
-        _id: 0, 
-        totalVolume: 1, 
-        count: 1 
+        _id: 0,
+        totalVolume: 1,
+        count: 1
       }
     }
   ]);
@@ -64,16 +64,16 @@ async function getMonthlyWater(year, month, timezone, ownerId) {
     },
     {
       $group: {
-        _id: null, 
+        _id: null,
         totalVolume: { $sum: "$volume" },
-        count: { $sum: 1 } 
+        count: { $sum: 1 }
       }
     },
     {
       $project: {
-        _id: 0, 
+        _id: 0,
         totalVolume: 1,
-        count: 1 
+        count: 1
       }
     }
   ]);

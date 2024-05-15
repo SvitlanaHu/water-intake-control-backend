@@ -1,0 +1,705 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API for managing users and their water consumption data.",
+    "version": "1.0.0",
+    "title": "User and Water Management API",
+    "contact": {
+      "email": "support@example.com"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "tags": [
+    {
+      "name": "User",
+      "description": "Operations related to users"
+    },
+    {
+      "name": "Water",
+      "description": "Operations related to water consumption records"
+    }
+  ],
+  "schemes": ["http", "https"],
+  "paths": {
+    "/users/register": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register a new user",
+        "description": "Registers a new user with an email, password, and optional timezone. Sends a verification email.",
+        "operationId": "registerUser",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User registration data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserRegister"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User successfully registered",
+            "schema": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          },
+          "409": {
+            "description": "Email already in use"
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Log in a user",
+        "description": "Logs in a user and returns a token along with user data.",
+        "operationId": "loginUser",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User login credentials",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials or email not verified"
+          }
+        }
+      }
+    },
+    "/users/logout": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Logout a user",
+        "description": "Logs out the current user by clearing their active session or token.",
+        "operationId": "logoutUser",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully logged out"
+          }
+        }
+      }
+    },
+    "/users/current": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get current user",
+        "description": "Retrieves the currently logged-in user's data.",
+        "operationId": "getCurrentUser",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "User data retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users/update/{id}": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user details",
+        "description": "Updates specified user details.",
+        "operationId": "updateUser",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "User ID"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details updated",
+            "schema": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/subscription": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user subscription",
+        "description": "Updates the subscription type for the current user.",
+        "operationId": "updateSubscription",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "New subscription details",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateSubscription"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription updated successfully",
+            "schema": {
+              "$ref": "#/definitions/SubscriptionResponse"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/avatars": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user's avatar",
+        "description": "Uploads and updates the user's avatar image.",
+        "operationId": "patchAvatar",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "formData",
+            "name": "avatar",
+            "type": "file",
+            "description": "The new avatar file",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avatar updated successfully",
+            "schema": {
+              "$ref": "#/definitions/AvatarResponse"
+            }
+          },
+          "400": {
+            "description": "No file uploaded"
+          }
+        }
+      }
+    },
+    "/users/verify/{verificationToken}": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Verify user email",
+        "description": "Verifies the user's email using a token sent via email.",
+        "operationId": "verifyEmail",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "verificationToken",
+            "required": true,
+            "type": "string",
+            "description": "The verification token from the email"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully",
+            "schema": {
+              "$ref": "#/definitions/VerifyResponse"
+            }
+          },
+          "404": {
+            "description": "Token invalid or user not found"
+          }
+        }
+      }
+    },
+    "/users/verify/resend": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Resend verification email",
+        "description": "Resends the verification email to the user.",
+        "operationId": "resendVerificationEmail",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResendVerification"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification email resent successfully",
+            "schema": {
+              "$ref": "#/definitions/ResendVerificationResponse"
+            }
+          },
+          "404": {
+            "description": "User not found or already verified"
+          }
+        }
+      }
+    },
+    "/water/": {
+      "post": {
+        "tags": ["Water"],
+        "summary": "Create a water record",
+        "description": "Adds a new water consumption record for the logged-in user.",
+        "operationId": "createWaterRecord",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Water record to be added",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/WaterRecordCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Water record created successfully",
+            "schema": {
+              "$ref": "#/definitions/WaterRecord"
+            }
+          }
+        }
+      }
+    },
+    "/water/{id}": {
+      "put": {
+        "tags": ["Water"],
+        "summary": "Update a water record",
+        "description": "Updates an existing water record for the logged-in user.",
+        "operationId": "updateWaterRecord",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "ID of the water record to update"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/WaterRecordUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Water record updated successfully",
+            "schema": {
+              "$ref": "#/definitions/WaterRecord"
+            }
+          },
+          "404": {
+            "description": "Water record not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Water"],
+        "summary": "Delete a water record",
+        "description": "Deletes an existing water record for the logged-in user.",
+        "operationId": "deleteWaterRecord",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "ID of the water record to delete"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Water record deleted successfully"
+          },
+          "404": {
+            "description": "Water record not found"
+          }
+        }
+      }
+    },
+    "/water/daily/{date}": {
+      "get": {
+        "tags": ["Water"],
+        "summary": "Get daily water data",
+        "description": "Retrieves water consumption data for a specific date for the logged-in user.",
+        "operationId": "getDailyWaterData",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "type": "string",
+            "description": "The date to retrieve water data for (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": true,
+            "type": "string",
+            "description": "Timezone for the date parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily water data retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/DailyWaterData"
+            }
+          },
+          "404": {
+            "description": "No data found for this date"
+          }
+        }
+      }
+    },
+    "/water/monthly/{year}/{month}": {
+      "get": {
+        "tags": ["Water"],
+        "summary": "Get monthly water data",
+        "description": "Retrieves water consumption data for a specific month and year for the logged-in user.",
+        "operationId": "getMonthlyWaterData",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "type": "integer",
+            "description": "The year to retrieve water data for"
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "type": "integer",
+            "description": "The month to retrieve water data for"
+          },
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": true,
+            "type": "string",
+            "description": "Timezone for the year and month parameters"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Monthly water data retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/MonthlyWaterData"
+            }
+          },
+          "404": {
+            "description": "No data found for this month and year"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "UserRegister": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "type": "string",
+          "format": "password"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "UserLogin": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "type": "string",
+          "format": "password"
+        }
+      }
+    },
+    "UserResponse": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "subscription": {
+          "type": "string"
+        },
+        "avatarURL": {
+          "type": "string",
+          "format": "uri"
+        },
+        "verify": {
+          "type": "boolean"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/UserResponse"
+        }
+      }
+    },
+    "UpdateUser": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "type": "string",
+          "format": "password"
+        },
+        "subscription": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "UpdateSubscription": {
+      "type": "object",
+      "properties": {
+        "subscription": {
+          "type": "string"
+        }
+      }
+    },
+    "SubscriptionResponse": {
+      "type": "object",
+      "properties": {
+        "subscription": {
+          "type": "string"
+        }
+      }
+    },
+    "AvatarResponse": {
+      "type": "object",
+      "properties": {
+        "avatarURL": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "VerifyResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ResendVerification": {
+      "type": "object",
+      "required": ["email"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      }
+    },
+    "ResendVerificationResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "WaterRecordCreate": {
+      "type": "object",
+      "required": ["volume", "date", "timezone"],
+      "properties": {
+        "volume": {
+          "type": "number"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "WaterRecordUpdate": {
+      "type": "object",
+      "properties": {
+        "volume": {
+          "type": "number"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "WaterRecord": {
+      "type": "object",
+      "properties": {
+        "volume": {
+          "type": "number"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "DailyWaterData": {
+      "type": "object",
+      "properties": {
+        "totalVolume": {
+          "type": "number"
+        },
+        "count": {
+          "type": "integer"
+        }
+      }
+    },
+    "MonthlyWaterData": {
+      "type": "object",
+      "properties": {
+        "totalVolume": {
+          "type": "number"
+        },
+        "count": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [{
+    "Bearer": []
+  }]
+}
