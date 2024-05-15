@@ -8,6 +8,9 @@ import usersRouter from "./routes/usersRouter.js";
 import waterRouter from "./routes/waterRouter.js";
 import dotenv from "dotenv";
 import sgMail from "@sendgrid/mail";
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger.json' assert { type: "json" };
+
 
 dotenv.config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -16,14 +19,22 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
+
+
 app.use(morgan("tiny"));
-app.use(cors());
+app.use(cors({
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: '*'
+}));
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/users", usersRouter);
 app.use("/api/water", waterRouter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const connectDB = async () => {
   try {
