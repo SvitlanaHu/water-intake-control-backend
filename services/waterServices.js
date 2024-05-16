@@ -26,28 +26,22 @@ async function getDailyWater(date, timezone, ownerId) {
   const startOfDay = moment.tz(date, timezone).startOf('day').toDate();
   const endOfDay = moment.tz(date, timezone).endOf('day').toDate();
 
-  return await WaterConsumption.aggregate([
-    {
-      $match: {
-        owner: new ObjectId(ownerId),
-        date: { $gte: startOfDay, $lt: endOfDay }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        totalVolume: { $sum: "$volume" },
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        totalVolume: 1,
-        count: 1
-      }
-    }
-  ]);
+  const records = await WaterConsumption.find({
+    owner: new ObjectId(ownerId),
+    date: { $gte: startOfDay, $lt: endOfDay }
+  });
+
+  const totalVolume = records.reduce((sum, record) => sum + record.volume, 0);
+
+  return {
+    totalVolume,
+    count: records.length,
+    records: records.map(record => ({
+      id: record._id,
+      volume: record.volume,
+      date: record.date
+    }))
+  };
 }
 
 // Get monthly water consumption
@@ -55,29 +49,24 @@ async function getMonthlyWater(year, month, timezone, ownerId) {
   const startDate = moment.tz({ year, month: month - 1 }, timezone).startOf('month').toDate();
   const endDate = moment.tz({ year, month: month - 1 }, timezone).endOf('month').toDate();
 
-  return await WaterConsumption.aggregate([
-    {
-      $match: {
-        owner: new ObjectId(ownerId),
-        date: { $gte: startDate, $lt: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        totalVolume: { $sum: "$volume" },
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        totalVolume: 1,
-        count: 1
-      }
-    }
-  ]);
+  const records = await WaterConsumption.find({
+    owner: new ObjectId(ownerId),
+    date: { $gte: startDate, $lt: endDate }
+  });
+
+  const totalVolume = records.reduce((sum, record) => sum + record.volume, 0);
+
+  return {
+    totalVolume,
+    count: records.length,
+    records: records.map(record => ({
+      id: record._id,
+      volume: record.volume,
+      date: record.date
+    }))
+  };
 }
+
 
 
 export {
