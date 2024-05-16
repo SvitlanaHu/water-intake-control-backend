@@ -49,9 +49,9 @@ export async function loginUser({ email, password }) {
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw HttpError(401, "Email or password is wrong");
   }
-  if (!user.verify) {
-    throw HttpError(403, "Email not verified");
-  }
+  // if (!user.verify) {
+  //   throw HttpError(403, "Email not verified");
+  // }
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1h",
   });
@@ -71,7 +71,7 @@ export async function logoutUser(user) {
   user.token = null;
   await user.save();
 }
-
+// 
 export async function updateUserDetails(userId, updateData) {
   if (updateData.password) {
     updateData.password = await bcrypt.hash(updateData.password, 12);
@@ -86,6 +86,27 @@ export async function updateUserDetails(userId, updateData) {
   }
   return user;
 }
+// 
+
+export const updateUser = async (userId, updates) => {
+  const allowedUpdates = ['name', 'email', 'gender', 'weight', 'timezone'];
+  const isValidOperation = Object.keys(updates).every(update => allowedUpdates.includes(update));
+
+  if (!isValidOperation) {
+    throw new Error('Invalid updates!');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  Object.keys(updates).forEach(update => user[update] = updates[update]);
+
+  await user.save();
+  return user;
+};
+
 
 export async function getCurrentUser(user) {
   return {

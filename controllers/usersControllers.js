@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   updateUserSubscription,
   updateUserDetails,
+  updateUser,
 } from "../services/userServices.js";
 import User from "../models/User.js";
 import fs from "fs/promises";
@@ -41,24 +42,33 @@ export const logout = async (req, res, next) => {
   }
 };
 
-export const updateUser = async (req, res, next) => {
-  const { id } = req.params;
-  const { email, password, subscription, timezone } = req.body;
+// export const updateUser = async (req, res, next) => {
+//   const { id } = req.params;
+//   const { email, password, subscription, timezone } = req.body;
+//   try {
+//     const updatedUser = await updateUserDetails(id, { email, password, subscription, timezone });
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+//     const sanitizedUser = {
+//       email: updatedUser.email,
+//       subscription: updatedUser.subscription,
+//       avatarURL: updatedUser.avatarURL,
+//       verify: updatedUser.verify,
+//       timezone: updatedUser.timezone
+//     };
+//     res.json({ message: "User updated", user: sanitizedUser });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+export const updateUserProfile = async (req, res) => {
   try {
-    const updatedUser = await updateUserDetails(id, { email, password, subscription, timezone });
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    const sanitizedUser = {
-      email: updatedUser.email,
-      subscription: updatedUser.subscription,
-      avatarURL: updatedUser.avatarURL,
-      verify: updatedUser.verify,
-      timezone: updatedUser.timezone
-    };
-    res.json({ message: "User updated", user: sanitizedUser });
-  } catch (error) {
-    next(error);
+    const user = await updateUser(req.user._id, req.body, req.file?.buffer);
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 

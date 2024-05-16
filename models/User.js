@@ -10,10 +10,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Password is required"],
   },
-  subscription: {
+  gender: {
     type: String,
-    enum: ["starter", "pro", "business"],
-    default: "starter",
+    enum: ['male', 'female', 'other'],
+  },
+  weight: {
+    type: Number,
   },
   token: {
     type: String,
@@ -30,7 +32,7 @@ const userSchema = new mongoose.Schema({
   },
   timezone: {
     type: String,
-    default: 'UTC' // Додати поле часового поясу зі значенням за замовчуванням 'UTC'
+    default: 'UTC' 
   },
 });
 

@@ -9,30 +9,37 @@ import {
   patchAvatar,
   verifyEmail,
   resendVerificationEmail,
+  updateUserProfile,
 } from "../controllers/usersControllers.js";
 import authenticate from "../middleware/authenticate.js";
 import validateBody from "../helpers/validateBody.js";
 
-import { updateUser } from '../controllers/usersControllers.js';
+// import { updateUser } from '../controllers/usersControllers.js';
 import { updateUserSchema } from '../schemas/userSchemas.js';
 import {
   userRegisterSchema,
   updateSubscriptionSchema,
   resendVerificationSchema,
 } from "../schemas/userSchemas.js";
+import { protect } from "../middleware/authMiddlewares.js";
 
 const usersRouter = express.Router();
 
 usersRouter.post("/register", validateBody(userRegisterSchema), register);
+
 usersRouter.post("/login", validateBody(userRegisterSchema), login);
+
 usersRouter.post("/logout", authenticate, logout);
+
 usersRouter.patch(
   "/update/:id",
-  authenticate,
+  protect,
   validateBody(updateUserSchema),
-  updateUser
+  updateUserProfile
 );
+
 usersRouter.get("/current", authenticate, currentUser);
+
 usersRouter.patch(
   "/subscription",
   authenticate,
