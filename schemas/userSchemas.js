@@ -33,4 +33,6 @@ export const updateUserSchema = Joi.object({
   dailyWaterIntake: Joi.number(),
   password: Joi.string().min(6),
   avatarURL: Joi.string(),
-}).or('nickname', 'email', 'gender', 'weight', 'activeTime', 'dailyWaterIntake', 'password', 'avatarURL');
+  timezone: Joi.string(),
+  subscription: Joi.string().valid("starter", "pro", "business"),
+}).or('nickname', 'email', 'gender', 'weight', 'activeTime', 'dailyWaterIntake', 'password', 'avatarURL', 'timezone', 'subscription');
