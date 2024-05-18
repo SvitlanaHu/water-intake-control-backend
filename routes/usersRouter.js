@@ -6,19 +6,20 @@ import {
   logout,
   currentUser,
   updateSubscription,
+  updateUser,
   patchAvatar,
   verifyEmail,
   resendVerificationEmail,
+  refreshUserTokens,
 } from "../controllers/usersControllers.js";
 import authenticate from "../middleware/authenticate.js";
 import validateBody from "../helpers/validateBody.js";
-
-import { updateUser } from '../controllers/usersControllers.js';
-import { updateUserSchema } from '../schemas/userSchemas.js';
 import {
   userRegisterSchema,
   updateSubscriptionSchema,
   resendVerificationSchema,
+  refreshTokenSchema,
+  updateUserSchema,
 } from "../schemas/userSchemas.js";
 
 const usersRouter = express.Router();
@@ -53,5 +54,6 @@ usersRouter.post(
   validateBody(resendVerificationSchema),
   resendVerificationEmail
 );
+usersRouter.post("/refresh-tokens", authenticate, validateBody(refreshTokenSchema), refreshUserTokens);
 
 export default usersRouter;
