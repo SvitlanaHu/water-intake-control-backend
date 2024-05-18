@@ -10,12 +10,13 @@ import {
   verifyEmail,
   resendVerificationEmail,
   updateUserProfile,
+  resetPassword,
 } from "../controllers/usersControllers.js";
 import authenticate from "../middleware/authenticate.js";
 import validateBody from "../helpers/validateBody.js";
 
 // import { updateUser } from '../controllers/usersControllers.js';
-import { updateUserSchema } from '../schemas/userSchemas.js';
+import { newPassword, updateUserSchema } from '../schemas/userSchemas.js';
 import {
   userRegisterSchema,
   updateSubscriptionSchema,
@@ -52,6 +53,8 @@ usersRouter.patch(
   upload.single("avatar"),
   patchAvatar
 );
+
+usersRouter.post("/restore-password/:otp", validateBody(newPassword), resetPassword)
 
 usersRouter.get("/verify/:verificationToken", verifyEmail);
 

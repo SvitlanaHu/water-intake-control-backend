@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -22,6 +23,8 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
   avatarURL: String,
+  passwordResetToken: String,
+  passwordResetTokenExp: Date,
   verify: {
     type: Boolean,
     default: false,
@@ -47,6 +50,15 @@ userSchema.pre("validate", function (next) {
   }
   next();
 });
+
+userSchema.methods.createPasswordResetToken = function() {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.passwordResetTokenExp = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
 
 const User = mongoose.model("User", userSchema);
 export default User;

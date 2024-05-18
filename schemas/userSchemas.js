@@ -20,3 +20,7 @@ export const updateUserSchema = Joi.object({
   subscription: Joi.string().valid("starter", "pro", "business"),
   timezone: Joi.string() 
 }).or('email', 'password', 'subscription', 'timezone');
+
+export const newPassword = Joi.object({
+  password: Joi.string().min(6).required(),
+})

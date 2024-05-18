@@ -6,6 +6,7 @@ import {
   updateUserSubscription,
   updateUserDetails,
   updateUser,
+  resetPasswordService,
 } from "../services/userServices.js";
 import User from "../models/User.js";
 import fs from "fs/promises";
@@ -65,12 +66,20 @@ export const logout = async (req, res, next) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const user = await updateUser(req.user._id, req.body, req.file?.buffer);
+    const user = await updateUser(req.user._id, req.body);
     res.json(user);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    await resetPasswordService(req.params.otp, req.body.password);
+  } catch (error) {
+    next(error);
+  }
+} 
 
 export const currentUser = async (req, res, next) => {
   try {

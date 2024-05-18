@@ -2,6 +2,8 @@ import gravatar from "gravatar";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+
 import HttpError from "../helpers/HttpError.js";
 import { nanoid } from "nanoid";
 import sgMail from "@sendgrid/mail";
@@ -106,6 +108,23 @@ export const updateUser = async (userId, updates) => {
   await user.save();
   return user;
 };
+
+export const resetPasswordService = async (opt, newPassword) => {
+  const otpHash = crypto.createHash('sha256').update(opt).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: otpHash,
+    passwordResetTokenExp: { $gt: Date.now() },
+  });
+
+  if (!user) throw HttpError(400, "Token is invalid");
+
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetTokenExp = undefined;
+
+  await user.save() 
+}
 
 
 export async function getCurrentUser(user) {
