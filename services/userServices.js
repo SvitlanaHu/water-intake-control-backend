@@ -252,7 +252,7 @@ export async function requestPasswordResetService(email, host) {
   }
 
   const resetToken = nanoid();
-  const resetUrl = `https://${host}/password-reset?token=${resetToken}`;
+  const resetUrl = `http://${host}/api/users/reset-password/${resetToken}`;
   user.resetToken = resetToken;
   user.resetTokenExpiration = Date.now() + 3600000; // 1 hour from now
   await user.save();
@@ -266,6 +266,14 @@ export async function requestPasswordResetService(email, host) {
   };
 
   await sgMail.send(mailOptions);
+}
+
+export async function validateResetTokenService(token) {
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() }
+  });
+  return !!user;
 }
 
 export async function resetPasswordService(token, newPassword) {

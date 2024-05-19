@@ -10,7 +10,8 @@ import {
   verifyEmailService,
   uploadAvatar,
   requestPasswordResetService,
-  resetPasswordService
+  resetPasswordService,
+  validateResetTokenService
 } from "../services/userServices.js";
 import User from "../models/User.js";
 import sgMail from "@sendgrid/mail";
@@ -184,15 +185,29 @@ export const requestPasswordReset = async (req, res, next) => {
   }
 };
 
+export const validateResetToken = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const isValid = await validateResetTokenService(token);
+
+    if (isValid) {
+      const redirectUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+      res.redirect(redirectUrl);
+    } else {
+      res.status(400).json({ message: "Invalid or expired token" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
     const resetSuccess = await resetPasswordService(token, newPassword);
 
     if (resetSuccess) {
-      // Redirect to frontend with a success message
-      const redirectUrl = `http://${process.env.FRONTEND_URL}/password-reset-success`;
-      res.redirect(redirectUrl);
+      res.status(200).json({ message: "Password reset successful" });
     } else {
       res.status(400).json({ message: "Invalid or expired token" });
     }

@@ -480,13 +480,51 @@
         }
       }
     },
-    "/users/password-reset": {
+    "/users/reset-password/{token}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Validate reset token",
+        "description": "Validates the password reset token and redirects to the frontend with the token.",
+        "operationId": "validateResetToken",
+        "produces": [
+          "application/json"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "type": "string",
+            "description": "Password reset token"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirection to the frontend with the reset token",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "URL to redirect the user to with the reset token",
+                "example": "http://your-frontend-url.com/reset-password?token=your-reset-token"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/users/reset-password": {
       "post": {
         "tags": [
           "User"
         ],
         "summary": "Reset password",
-        "description": "Resets the user's password using the token sent to their email. Redirects to the frontend upon success.",
+        "description": "Resets the user's password using the token sent to their email.",
         "operationId": "resetPassword",
         "consumes": [
           "application/json"
@@ -507,15 +545,8 @@
           }
         ],
         "responses": {
-          "302": {
-            "description": "Redirection to the frontend with a success message",
-            "headers": {
-              "Location": {
-                "type": "string",
-                "description": "URL to redirect the user to, with a success message",
-                "example": "http://your-frontend-url.com/password-reset-success"
-              }
-            }
+          "200": {
+            "description": "Password reset successful"
           },
           "400": {
             "description": "Invalid or expired token"

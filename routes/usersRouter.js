@@ -13,6 +13,7 @@ import {
   countUniqueUsers,
   refreshUserTokens,
   requestPasswordReset,
+  validateResetToken,
   resetPassword
 } from "../controllers/usersControllers.js";
 import authenticate from "../middleware/authenticate.js";
@@ -59,6 +60,7 @@ usersRouter.post(
 );
 usersRouter.post("/refresh-tokens", validateBody(refreshTokenSchema), refreshUserTokens);
 usersRouter.post("/password-reset-request", validateBody(requestPasswordResetSchema), requestPasswordReset);
-usersRouter.post("/password-reset", validateBody(resetPasswordSchema), resetPassword);
+usersRouter.get("/reset-password/:token", validateResetToken);
+usersRouter.post("/reset-password", validateBody(resetPasswordSchema), resetPassword);
 
 export default usersRouter;
