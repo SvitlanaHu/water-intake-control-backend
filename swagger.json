@@ -5,10 +5,10 @@
     "version": "1.0.0",
     "title": "User and Water Management API",
     "contact": {
-      "email": "support@example.com"
+      "email": "jaycikey@gmail.com"
     }
   },
-  "host": "water-intake-control-backend.onrender.com",
+  "host": "localhost:3000",
   "basePath": "/api",
   "tags": [
     {
@@ -20,17 +20,26 @@
       "description": "Operations related to water consumption records"
     }
   ],
-  "schemes": ["http", "https"],
+  "schemes": [
+    "https",
+    "http"
+  ],
   "paths": {
     "/users/register": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Register a new user",
         "description": "Registers a new user with an email, password, and optional timezone. Sends a verification email.",
         "operationId": "registerUser",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "security":[],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [],
         "parameters": [
           {
             "in": "body",
@@ -57,13 +66,19 @@
     },
     "/users/login": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Log in a user",
         "description": "Logs in a user and returns a token along with user data.",
         "operationId": "loginUser",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "security":[],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [],
         "parameters": [
           {
             "in": "body",
@@ -90,7 +105,9 @@
     },
     "/users/logout": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Logout a user",
         "description": "Logs out the current user by clearing their active session or token.",
         "operationId": "logoutUser",
@@ -102,13 +119,18 @@
         "responses": {
           "204": {
             "description": "Successfully logged out"
+          },
+          "401": {
+            "description": "Not authorized"
           }
         }
       }
     },
     "/users/current": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get current user",
         "description": "Retrieves the currently logged-in user's data.",
         "operationId": "getCurrentUser",
@@ -117,25 +139,38 @@
             "Bearer": []
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "User data retrieved successfully",
             "schema": {
               "$ref": "#/definitions/UserResponse"
             }
+          },
+          "401": {
+            "description": "Not authorized"
           }
         }
       }
     },
     "/users/update/{id}": {
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update user details",
         "description": "Updates specified user details.",
         "operationId": "updateUser",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -162,18 +197,30 @@
           },
           "404": {
             "description": "User not found"
+          },
+          "400": {
+            "description": "Disallowed fields"
+          },
+          "401": {
+            "description": "Not authorized"
           }
         }
       }
     },
     "/users/subscription": {
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update user subscription",
         "description": "Updates the subscription type for the current user.",
         "operationId": "updateSubscription",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "security": [
           {
             "Bearer": []
@@ -205,12 +252,18 @@
     },
     "/users/avatars": {
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update user's avatar",
         "description": "Uploads and updates the user's avatar image.",
         "operationId": "patchAvatar",
-        "consumes": ["multipart/form-data"],
-        "produces": ["application/json"],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "security": [
           {
             "Bearer": []
@@ -240,11 +293,15 @@
     },
     "/users/verify/{verificationToken}": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Verify user email",
         "description": "Verifies the user's email using a token sent via email.",
         "operationId": "verifyEmail",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -269,12 +326,18 @@
     },
     "/users/verify/resend": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Resend verification email",
         "description": "Resends the verification email to the user.",
         "operationId": "resendVerificationEmail",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "parameters": [
           {
             "in": "body",
@@ -298,41 +361,50 @@
         }
       }
     },
-    "/api/users/total": {
-    "get": {
-      "tags": ["User"],
-      "summary": "Get unique users count",
-      "description": "Returns the total number of unique users.",
-      "operationId": "getUniqueUsersCount",
-      "produces": ["application/json"],
-      "responses": {
-        "200": {
-          "description": "Total number of unique users",
-          "schema": {
-            "type": "object",
-            "properties": {
-              "total": {
-                "type": "integer",
-                "example": 123
+    "/users/total": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get unique users count",
+        "description": "Returns the total number of unique users.",
+        "operationId": "getUniqueUsersCount",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Total number of unique users",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "total": {
+                  "type": "integer",
+                  "example": 123
+                }
               }
             }
+          },
+          "500": {
+            "description": "Server error"
           }
-        },
-        "500": {
-          "description": "Server error"
         }
       }
-    }
-  },
-
+    },
     "/water/": {
       "post": {
-        "tags": ["Water"],
+        "tags": [
+          "Water"
+        ],
         "summary": "Create a water record",
         "description": "Adds a new water consumption record for the logged-in user.",
         "operationId": "createWaterRecord",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "security": [
           {
             "Bearer": []
@@ -361,12 +433,18 @@
     },
     "/water/{id}": {
       "put": {
-        "tags": ["Water"],
+        "tags": [
+          "Water"
+        ],
         "summary": "Update a water record",
         "description": "Updates an existing water record for the logged-in user.",
         "operationId": "updateWaterRecord",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "security": [
           {
             "Bearer": []
@@ -402,7 +480,9 @@
         }
       },
       "delete": {
-        "tags": ["Water"],
+        "tags": [
+          "Water"
+        ],
         "summary": "Delete a water record",
         "description": "Deletes an existing water record for the logged-in user.",
         "operationId": "deleteWaterRecord",
@@ -432,11 +512,15 @@
     },
     "/water/daily/{date}": {
       "get": {
-        "tags": ["Water"],
+        "tags": [
+          "Water"
+        ],
         "summary": "Get daily water data",
         "description": "Retrieves water consumption data for a specific date for the logged-in user.",
         "operationId": "getDailyWaterData",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "security": [
           {
             "Bearer": []
@@ -473,11 +557,15 @@
     },
     "/water/monthly/{year}/{month}": {
       "get": {
-        "tags": ["Water"],
+        "tags": [
+          "Water"
+        ],
         "summary": "Get monthly water data",
         "description": "Retrieves water consumption data for a specific month and year for the logged-in user.",
         "operationId": "getMonthlyWaterData",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "security": [
           {
             "Bearer": []
@@ -523,7 +611,10 @@
   "definitions": {
     "UserRegister": {
       "type": "object",
-      "required": ["email", "password"],
+      "required": [
+        "email",
+        "password"
+      ],
       "properties": {
         "email": {
           "type": "string",
@@ -540,7 +631,10 @@
     },
     "UserLogin": {
       "type": "object",
-      "required": ["email", "password"],
+      "required": [
+        "email",
+        "password"
+      ],
       "properties": {
         "email": {
           "type": "string",
@@ -555,9 +649,15 @@
     "UserResponse": {
       "type": "object",
       "properties": {
+        "userId": {
+          "type": "string"
+        },
         "email": {
           "type": "string",
           "format": "email"
+        },
+        "nickname": {
+          "type": "string"
         },
         "subscription": {
           "type": "string"
@@ -571,6 +671,18 @@
         },
         "timezone": {
           "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number"
+        },
+        "activeTime": {
+          "type": "number"
+        },
+        "dailyWaterIntake": {
+          "type": "number"
         }
       }
     },
@@ -578,6 +690,9 @@
       "type": "object",
       "properties": {
         "token": {
+          "type": "string"
+        },
+        "refreshToken": {
           "type": "string"
         },
         "user": {
@@ -588,19 +703,23 @@
     "UpdateUser": {
       "type": "object",
       "properties": {
-        "email": {
-          "type": "string",
-          "format": "email"
-        },
-        "password": {
-          "type": "string",
-          "format": "password"
-        },
-        "subscription": {
+        "nickname": {
           "type": "string"
         },
         "timezone": {
           "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number"
+        },
+        "activeTime": {
+          "type": "number"
+        },
+        "dailyWaterIntake": {
+          "type": "number"
         }
       }
     },
@@ -639,7 +758,9 @@
     },
     "ResendVerification": {
       "type": "object",
-      "required": ["email"],
+      "required": [
+        "email"
+      ],
       "properties": {
         "email": {
           "type": "string",
@@ -657,7 +778,11 @@
     },
     "WaterRecordCreate": {
       "type": "object",
-      "required": ["volume", "date", "timezone"],
+      "required": [
+        "volume",
+        "date",
+        "timezone"
+      ],
       "properties": {
         "volume": {
           "type": "number"
@@ -728,7 +853,9 @@
       "in": "header"
     }
   },
-  "security": [{
-    "Bearer": []
-  }]
+  "security": [
+    {
+      "Bearer": []
+    }
+  ]
 }

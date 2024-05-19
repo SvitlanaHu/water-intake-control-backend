@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema({
   token: {
     type: String,
     default: null,
+  }, refreshToken: {
+    type: String,
+    default: null,
   },
   avatarURL: String,
   verify: {
@@ -31,6 +34,25 @@ const userSchema = new mongoose.Schema({
   timezone: {
     type: String,
     default: 'UTC' // Додати поле часового поясу зі значенням за замовчуванням 'UTC'
+  },
+  nickname: {
+    type: String,
+  },
+  gender: {
+    type: String,
+    default: null,
+  },
+  weight: {
+    type: Number,
+    default: 0,
+  },
+  activeTime: {
+    type: Number,
+    default: 0,
+  },
+  dailyWaterIntake: {
+    type: Number,
+    default: 0,
   },
 });
 

@@ -25,7 +25,11 @@ export async function registerUser({ email, password, timezone = 'UTC' }, host) 
     verificationToken,
     verify: false,
     timezone,
-    nickname
+    nickname,
+    gender: null,
+    weight: 0,
+    activeTime: 0,
+    dailyWaterIntake: 0,
   });
   await newUser.save();
 
@@ -41,11 +45,17 @@ export async function registerUser({ email, password, timezone = 'UTC' }, host) 
   await sgMail.send(mailOptions);
 
   return {
+    userId: newUser._id,
     email: newUser.email,
+    nickname: newUser.nickname,
     subscription: newUser.subscription,
     avatarURL: newUser.avatarURL,
     verify: newUser.verify,
     timezone: newUser.timezone,
+    gender: newUser.gender,
+    weight: newUser.weight,
+    activeTime: newUser.activeTime,
+    dailyWaterIntake: newUser.dailyWaterIntake,
   };
 }
 
@@ -66,6 +76,7 @@ export async function loginUser({ email, password }) {
   });
   user.token = token;
   user.refreshToken = refreshToken;
+
   await user.save();
   return {
     token,
@@ -73,7 +84,15 @@ export async function loginUser({ email, password }) {
     user: {
       userId: user._id,
       email: user.email,
+      nickname: user.nickname,
       subscription: user.subscription,
+      avatarURL: user.avatarURL,
+      verify: user.verify,
+      timezone: user.timezone,
+      gender: user.gender,
+      weight: user.weight,
+      activeTime: user.activeTime,
+      dailyWaterIntake: user.dailyWaterIntake,
     },
   };
 }
@@ -85,20 +104,25 @@ export async function logoutUser(user) {
 }
 
 export async function updateUserDetails(userId, updateData) {
-  if (updateData.password) {
-    updateData.password = await bcrypt.hash(updateData.password, 12);
+  // List of allowed fields for update
+  const allowedFields = ["nickname", "timezone", "gender", "weight", "activeTime", "dailyWaterIntake"];
+
+  // Check for disallowed fields
+  const disallowedFields = Object.keys(updateData).filter(key => !allowedFields.includes(key));
+  if (disallowedFields.length > 0) {
+    throw new Error(`Disallowed fields: ${disallowedFields.join(", ")}`);
   }
-  if (updateData.email) {
-    updateData.email = updateData.email.toLowerCase();
-  }
+
   const user = await User.findByIdAndUpdate(
     userId,
     updateData,
     { new: true }
   );
+
   if (!user) {
     throw new Error('User not found');
   }
+
   return user;
 }
 
@@ -106,7 +130,15 @@ export async function getCurrentUser(user) {
   return {
     userId: user._id,
     email: user.email,
+    nickname: user.nickname,
     subscription: user.subscription,
+    avatarURL: user.avatarURL,
+    verify: user.verify,
+    timezone: user.timezone,
+    gender: user.gender,
+    weight: user.weight,
+    activeTime: user.activeTime,
+    dailyWaterIntake: user.dailyWaterIntake,
   };
 }
 
