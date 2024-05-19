@@ -12,15 +12,20 @@ import {
   resendVerificationEmail,
   countUniqueUsers,
   refreshUserTokens,
+  requestPasswordReset,
+  resetPassword
 } from "../controllers/usersControllers.js";
 import authenticate from "../middleware/authenticate.js";
 import validateBody from "../helpers/validateBody.js";
+import checkKey from "../middleware/checkKey.js";
 import {
   userRegisterSchema,
   updateSubscriptionSchema,
   resendVerificationSchema,
   refreshTokenSchema,
   updateUserSchema,
+  requestPasswordResetSchema,
+  resetPasswordSchema
 } from "../schemas/userSchemas.js";
 
 const usersRouter = express.Router();
@@ -29,11 +34,12 @@ usersRouter.post("/register", validateBody(userRegisterSchema), register);
 usersRouter.post("/login", validateBody(userRegisterSchema), login);
 usersRouter.post("/logout", authenticate, logout);
 usersRouter.patch("/update/:id", authenticate, validateBody(updateUserSchema), updateUser);
-usersRouter.get('/api/users/total', countUniqueUsers);
+usersRouter.get('/total', countUniqueUsers);
 usersRouter.get("/current", authenticate, currentUser);
 usersRouter.patch(
   "/subscription",
   authenticate,
+  checkKey,
   validateBody(updateSubscriptionSchema),
   updateSubscription
 );
@@ -51,6 +57,8 @@ usersRouter.post(
   validateBody(resendVerificationSchema),
   resendVerificationEmail
 );
-usersRouter.post("/refresh-tokens", authenticate, validateBody(refreshTokenSchema), refreshUserTokens);
+usersRouter.post("/refresh-tokens", validateBody(refreshTokenSchema), refreshUserTokens);
+usersRouter.post("/password-reset-request", validateBody(requestPasswordResetSchema), requestPasswordReset);
+usersRouter.post("/password-reset", validateBody(resetPasswordSchema), resetPassword);
 
 export default usersRouter;

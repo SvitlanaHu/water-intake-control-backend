@@ -54,6 +54,8 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  resetToken: String,
+  resetTokenExpiration: Date,
 });
 
 // Middleware, яке динамічно змінює валідацію verificationToken

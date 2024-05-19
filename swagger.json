@@ -8,7 +8,7 @@
       "email": "jaycikey@gmail.com"
     }
   },
-  "host": "localhost:3000",
+  "host": "water-intake-control-backend.onrender.com",
   "basePath": "/api",
   "tags": [
     {
@@ -163,10 +163,8 @@
         "summary": "Update user details",
         "description": "Updates specified user details.",
         "operationId": "updateUser",
-        "security": [
-          {
-            "Bearer": []
-          }
+        "consumes": [
+          "application/json"
         ],
         "produces": [
           "application/json"
@@ -192,7 +190,7 @@
           "200": {
             "description": "User details updated",
             "schema": {
-              "$ref": "#/definitions/UserResponse"
+              "$ref": "#/definitions/UpdateUserResponse"
             }
           },
           "404": {
@@ -213,7 +211,7 @@
           "User"
         ],
         "summary": "Update user subscription",
-        "description": "Updates the subscription type for the current user.",
+        "description": "Updates the subscription type for the current user. Requires a specific key in the request header.",
         "operationId": "updateSubscription",
         "consumes": [
           "application/json"
@@ -227,6 +225,13 @@
           }
         ],
         "parameters": [
+          {
+            "in": "header",
+            "name": "x-custom-key",
+            "type": "string",
+            "required": true,
+            "description": "Key required to authorize subscription update"
+          },
           {
             "in": "body",
             "name": "body",
@@ -244,6 +249,9 @@
               "$ref": "#/definitions/SubscriptionResponse"
             }
           },
+          "403": {
+            "description": "Forbidden: Invalid or missing key"
+          },
           "404": {
             "description": "User not found"
           }
@@ -256,7 +264,7 @@
           "User"
         ],
         "summary": "Update user's avatar",
-        "description": "Uploads and updates the user's avatar image.",
+        "description": "Uploads and updates the user's avatar image. The image is uploaded to Cloudinary.",
         "operationId": "patchAvatar",
         "consumes": [
           "multipart/form-data"
@@ -283,10 +291,18 @@
             "description": "Avatar updated successfully",
             "schema": {
               "$ref": "#/definitions/AvatarResponse"
+            },
+            "examples": {
+              "application/json": {
+                "avatarURL": "http://res.cloudinary.com/your_cloud_name/image/upload/v1624460648/avatars/1624460648123-sample.jpg"
+              }
             }
           },
           "400": {
             "description": "No file uploaded"
+          },
+          "401": {
+            "description": "Not authorized"
           }
         }
       }
@@ -297,25 +313,29 @@
           "User"
         ],
         "summary": "Verify user email",
-        "description": "Verifies the user's email using a token sent via email.",
+        "description": "Verifies the user's email using a token sent via email. Upon successful verification, the user is redirected to the frontend with a JWT token and refresh token in the URL parameters.",
         "operationId": "verifyEmail",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "in": "path",
             "name": "verificationToken",
+            "in": "path",
             "required": true,
             "type": "string",
             "description": "The verification token from the email"
           }
         ],
         "responses": {
-          "200": {
-            "description": "Email verified successfully",
-            "schema": {
-              "$ref": "#/definitions/VerifyResponse"
+          "302": {
+            "description": "Redirection to the frontend with tokens in URL",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "URL to redirect the user to, with JWT token and refresh token as query parameters",
+                "example": "http://your-frontend-url.com/verify?token=your_jwt_token&refreshToken=your_refresh_token"
+              }
             }
           },
           "404": {
@@ -366,27 +386,139 @@
         "tags": [
           "User"
         ],
-        "summary": "Get unique users count",
-        "description": "Returns the total number of unique users.",
-        "operationId": "getUniqueUsersCount",
+        "summary": "Get total users and last five avatars",
+        "description": "Returns the total number of registered users and the avatars of the last five registered users.",
+        "operationId": "getTotalUsers",
         "produces": [
           "application/json"
         ],
+        "security": [],
         "responses": {
           "200": {
-            "description": "Total number of unique users",
+            "description": "Total users and last five avatars retrieved successfully",
             "schema": {
-              "type": "object",
-              "properties": {
-                "total": {
-                  "type": "integer",
-                  "example": 123
-                }
-              }
+              "$ref": "#/definitions/TotalUsersResponse"
             }
           },
           "500": {
             "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/refresh-tokens": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Refresh user tokens",
+        "description": "Refreshes the user's access and refresh tokens using the provided refresh token.",
+        "operationId": "refreshUserTokens",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RefreshTokenRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully",
+            "schema": {
+              "$ref": "#/definitions/RefreshResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid refresh token"
+          }
+        }
+      }
+    },
+    "/users/password-reset-request": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Request password reset",
+        "description": "Sends a password reset link to the user's email.",
+        "operationId": "requestPasswordReset",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User email",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestPasswordReset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset link sent"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/password-reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset password",
+        "description": "Resets the user's password using the token sent to their email. Redirects to the frontend upon success.",
+        "operationId": "resetPassword",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Password reset details",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResetPassword"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirection to the frontend with a success message",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "URL to redirect the user to, with a success message",
+                "example": "http://your-frontend-url.com/password-reset-success"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token"
           }
         }
       }
@@ -501,7 +633,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Water record deleted successfully"
           },
           "404": {
@@ -686,6 +818,48 @@
         }
       }
     },
+    "UpdateUserResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "user": {
+          "type": "object",
+          "properties": {
+            "nickname": {
+              "type": "string"
+            },
+            "timezone": {
+              "type": "string"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "weight": {
+              "type": "number"
+            },
+            "activeTime": {
+              "type": "number"
+            },
+            "dailyWaterIntake": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "RefreshResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
     "LoginResponse": {
       "type": "object",
       "properties": {
@@ -740,11 +914,14 @@
       }
     },
     "AvatarResponse": {
-      "type": "object",
-      "properties": {
-        "avatarURL": {
-          "type": "string",
-          "format": "uri"
+      "AvatarResponse": {
+        "type": "object",
+        "properties": {
+          "avatarURL": {
+            "type": "string",
+            "format": "uri",
+            "example": "http://res.cloudinary.com/your_cloud_name/image/upload/v1624460648/avatars/1624460648123-sample.jpg"
+          }
         }
       }
     },
@@ -773,6 +950,55 @@
       "properties": {
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "RefreshTokenRequest": {
+      "type": "object",
+      "required": [
+        "refreshToken"
+      ],
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "TotalUsersResponse": {
+      "type": "object",
+      "properties": {
+        "totalUsers": {
+          "type": "integer",
+          "example": 123
+        },
+        "lastFiveAvatars": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri",
+            "example": "http://example.com/avatar1.jpg"
+          }
+        }
+      }
+    },
+    "RequestPasswordReset": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      }
+    },
+    "ResetPassword": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "newPassword": {
+          "type": "string",
+          "format": "password"
         }
       }
     },
@@ -831,6 +1057,24 @@
         },
         "count": {
           "type": "integer"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "volume": {
+                "type": "number"
+              },
+              "date": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
         }
       }
     },
@@ -842,6 +1086,24 @@
         },
         "count": {
           "type": "integer"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "volume": {
+                "type": "number"
+              },
+              "date": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
         }
       }
     }
