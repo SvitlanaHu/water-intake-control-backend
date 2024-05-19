@@ -298,6 +298,33 @@
         }
       }
     },
+    "/api/users/total": {
+    "get": {
+      "tags": ["User"],
+      "summary": "Get unique users count",
+      "description": "Returns the total number of unique users.",
+      "operationId": "getUniqueUsersCount",
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "Total number of unique users",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "example": 123
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Server error"
+        }
+      }
+    }
+  },
+
     "/water/": {
       "post": {
         "tags": ["Water"],
