@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   updateUserSubscription,
   updateUserDetails,
+  refreshTokens,
 } from "../services/userServices.js";
 import User from "../models/User.js";
 import fs from "fs/promises";
@@ -16,7 +17,8 @@ export const register = async (req, res, next) => {
   try {
     const { email, password, timezone } = req.body;
     const host = req.headers.host;
-    const user = await registerUser({ email, password, timezone }, host);
+    const nickname = email.split('@')[0];
+    const user = await registerUser({ email, password, timezone, nickname }, host);
     res.status(201).json(user);
   } catch (error) {
     next(error);
@@ -25,8 +27,8 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { token, user } = await loginUser(req.body);
-    res.json({ token, user });
+    const { token, refreshToken, user } = await loginUser(req.body);
+    res.json({ token, refreshToken, user });
   } catch (error) {
     next(error);
   }
@@ -43,15 +45,19 @@ export const logout = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   const { id } = req.params;
-  const { email, password, subscription, timezone } = req.body;
   try {
-    const updatedUser = await updateUserDetails(id, { email, password, subscription, timezone });
+    const updatedUser = await updateUserDetails(id, req.body);
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
     const sanitizedUser = {
+      nickname: updatedUser.nickname,
       email: updatedUser.email,
+      gender: updatedUser.gender,
+      weight: updatedUser.weight,
+      activeTime: updatedUser.activeTime,
       subscription: updatedUser.subscription,
+      dailyWaterIntake: updatedUser.dailyWaterIntake,
       avatarURL: updatedUser.avatarURL,
       verify: updatedUser.verify,
       timezone: updatedUser.timezone
@@ -129,6 +135,7 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const resendVerificationEmail = async (req, res, next) => {
   const { email } = req.body;
   try {
@@ -156,12 +163,12 @@ export const resendVerificationEmail = async (req, res, next) => {
   }
 };
 
-export const countUniqueUsers = async (req, res) => {
+export const refreshUserTokens = async (req, res, next) => {
   try {
-    const uniqueUsersCount = await User.countDocuments();
-    res.json({ total: uniqueUsersCount });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+    const { token, refreshToken } = await refreshTokens(req.user, req.body.refreshToken);
+    res.json({ token, refreshToken });
+  } catch (error) {
+    next(error);
   }
 };
+
