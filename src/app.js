@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const connectDB = require("../server.js");
+const usersRouter = require("../routes/usersRouter.js")
 require('dotenv').config();
 
 const app = express();
@@ -11,6 +12,7 @@ connectDB()
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
+app.use(usersRouter);
 
 app.use((_, res) => {
     res.status(404).json({
