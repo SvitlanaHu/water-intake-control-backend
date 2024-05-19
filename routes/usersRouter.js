@@ -9,6 +9,7 @@ import {
   patchAvatar,
   verifyEmail,
   resendVerificationEmail,
+  countUniqueUsers,
 } from "../controllers/usersControllers.js";
 import authenticate from "../middleware/authenticate.js";
 import validateBody from "../helpers/validateBody.js";
@@ -32,6 +33,7 @@ usersRouter.patch(
   validateBody(updateUserSchema),
   updateUser
 );
+router.get('/api/users/total', countUniqueUsers);
 usersRouter.get("/current", authenticate, currentUser);
 usersRouter.patch(
   "/subscription",
