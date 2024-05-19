@@ -223,11 +223,26 @@ export async function uploadAvatar(userId, file) {
     throw new HttpError(400, "No file uploaded");
   }
 
-  const { path: avatarURL } = file;
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
 
-  await User.findByIdAndUpdate(userId, { avatarURL });
+  // Delete old avatar from Cloudinary
+  if (user.avatarPublicId) {
+    await cloudinary.uploader.destroy(user.avatarPublicId);
+  }
 
-  return avatarURL;
+  // Upload new avatar to Cloudinary
+  const result = await cloudinary.uploader.upload(file.path, {
+    folder: "avatars",
+  });
+
+  user.avatarURL = result.secure_url;
+  user.avatarPublicId = result.public_id;
+  await user.save();
+
+  return user.avatarURL;
 }
 
 export async function requestPasswordResetService(email, host) {

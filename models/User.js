@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
   avatarURL: String,
+  avatarPublicId: String, // Add this field to store Cloudinary public ID
   verify: {
     type: Boolean,
     default: false,
