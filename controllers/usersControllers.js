@@ -56,14 +56,14 @@ export const updateUser = async (req, res, next) => {
       gender: updatedUser.gender,
       weight: updatedUser.weight,
       activeTime: updatedUser.activeTime,
-      subscription: updatedUser.subscription,
       dailyWaterIntake: updatedUser.dailyWaterIntake,
       avatarURL: updatedUser.avatarURL,
-      verify: updatedUser.verify,
-      timezone: updatedUser.timezone
     };
     res.json({ message: "User updated", user: sanitizedUser });
   } catch (error) {
+    if (error.message.startsWith("Disallowed fields:")) {
+      return res.status(400).json({ message: error.message });
+    }
     next(error);
   }
 };
