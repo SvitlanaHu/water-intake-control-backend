@@ -195,7 +195,7 @@ export async function getTotalUsers() {
 export async function verifyEmailService(verificationToken) {
   const user = await User.findOneAndUpdate(
     { verificationToken },
-    { $set: { verify: true, verificationToken: "null" } },
+    { $set: { verify: true, verificationToken: null } },
     { new: true }
   );
 
