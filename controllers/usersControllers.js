@@ -48,9 +48,8 @@ export const logout = async (req, res, next) => {
 };
 
 export const updateUser = async (req, res, next) => {
-  const { id } = req.params;
   try {
-    const updatedUser = await updateUserDetails(id, req.body);
+    const updatedUser = await updateUserDetails(req.user._id, req.body);
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }

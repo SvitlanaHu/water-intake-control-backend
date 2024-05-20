@@ -2,15 +2,32 @@ import gravatar from "gravatar";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import path from "path";
+import fs from "fs/promises";
+import { fileURLToPath } from "url";
 import HttpError from "../helpers/HttpError.js";
 import { nanoid } from "nanoid";
 import sgMail from "@sendgrid/mail";
+
+// Workaround for __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const sendEmail = async (to, subject, htmlContent) => {
+  const msg = {
+    to,
+    from: "jaycikey@gmail.com",
+    subject,
+    html: htmlContent,
+  };
+  await sgMail.send(msg);
+};
 
 export async function registerUser({ email, password, timezone = 'UTC' }, host) {
   const lowerCaseEmail = email.toLowerCase();
   const existingUser = await User.findOne({ email: lowerCaseEmail });
   if (existingUser) {
-    throw HttpError(409, "Email in use");
+    throw HttpError(403, "Email in use");
   }
 
   const verificationToken = nanoid();
@@ -21,7 +38,7 @@ export async function registerUser({ email, password, timezone = 'UTC' }, host) 
   const newUser = new User({
     email: lowerCaseEmail,
     password: hashedPassword,
-    avatarURL, // Store the avatar URL in the User record
+    avatarURL,
     verificationToken,
     verify: false,
     timezone,
@@ -34,18 +51,13 @@ export async function registerUser({ email, password, timezone = 'UTC' }, host) 
   await newUser.save();
 
   const verificationUrl = `http://${host}/api/users/verify/${verificationToken}`;
-  const mailOptions = {
-    to: email,
-    from: "jaycikey@gmail.com",
-    subject: "Verify your email",
-    text: `Please click on the following link to verify your email: ${verificationUrl}`,
-    html: `<strong>Please click on the following link to verify your email:</strong> <a href="${verificationUrl}">${verificationUrl}</a>`,
-  };
+  const templatePath = path.join(__dirname, "../templates/verificationEmail.html");
+  let htmlContent = await fs.readFile(templatePath, "utf8");
+  htmlContent = htmlContent.replace("{{verificationUrl}}", verificationUrl);
 
-  await sgMail.send(mailOptions);
+  await sendEmail(newUser.email, "Verify Your Email", htmlContent);
 
   return {
-    userId: newUser._id,
     email: newUser.email,
     nickname: newUser.nickname,
     subscription: newUser.subscription,
@@ -82,7 +94,6 @@ export async function loginUser({ email, password }) {
     token,
     refreshToken,
     user: {
-      userId: user._id,
       email: user.email,
       nickname: user.nickname,
       subscription: user.subscription,
@@ -116,7 +127,7 @@ export async function updateUserDetails(userId, updateData) {
   const user = await User.findByIdAndUpdate(
     userId,
     updateData,
-    { new: true }
+    { new: true, runValidators: true }
   );
 
   if (!user) {
@@ -128,7 +139,6 @@ export async function updateUserDetails(userId, updateData) {
 
 export async function getCurrentUser(user) {
   return {
-    userId: user._id,
     email: user.email,
     nickname: user.nickname,
     subscription: user.subscription,
@@ -257,15 +267,11 @@ export async function requestPasswordResetService(email, host) {
   user.resetTokenExpiration = Date.now() + 3600000; // 1 hour from now
   await user.save();
 
-  const mailOptions = {
-    to: email,
-    from: "no-reply@example.com",
-    subject: "Password Reset",
-    text: `You requested a password reset. Click the link to reset your password: ${resetUrl}`,
-    html: `<p>You requested a password reset. Click the link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`
-  };
+  const templatePath = path.join(__dirname, "../templates/passwordResetEmail.html");
+  let htmlContent = await fs.readFile(templatePath, "utf8");
+  htmlContent = htmlContent.replace("{{resetUrl}}", resetUrl);
 
-  await sgMail.send(mailOptions);
+  await sendEmail(user.email, "Reset Your Password", htmlContent);
 }
 
 export async function validateResetTokenService(token) {
