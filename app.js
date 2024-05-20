@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 app.use(morgan("tiny"));
 app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   origin: '*'
 }));
 app.use(express.json());

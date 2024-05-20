@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
   avatarURL: String,
+  avatarPublicId: String, // Add this field to store Cloudinary public ID
   verify: {
     type: Boolean,
     default: false,
@@ -54,6 +55,8 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  resetToken: String,
+  resetTokenExpiration: Date,
 });
 
 // Middleware, яке динамічно змінює валідацію verificationToken

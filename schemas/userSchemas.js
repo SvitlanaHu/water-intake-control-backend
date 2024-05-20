@@ -36,3 +36,12 @@ export const updateUserSchema = Joi.object({
   timezone: Joi.string(),
   subscription: Joi.string().valid("starter", "pro", "business"),
 }).or('nickname', 'email', 'gender', 'weight', 'activeTime', 'dailyWaterIntake', 'password', 'avatarURL', 'timezone', 'subscription');
+
+export const requestPasswordResetSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+export const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  newPassword: Joi.string().min(6).required(),
+});

@@ -29,7 +29,7 @@ export async function registerUser({ email, password, timezone = 'UTC' }, host) 
     gender: null,
     weight: 0,
     activeTime: 0,
-    dailyWaterIntake: 0,
+    dailyWaterIntake: 1500,
   });
   await newUser.save();
 
@@ -154,21 +154,141 @@ export async function updateUserSubscription(userId, subscription) {
   return user;
 }
 
-export async function refreshTokens(user, refreshToken) {
-  if (user.refreshToken !== refreshToken) {
-    throw HttpError(401, "Invalid refresh token");
+export async function refreshTokens(user, providedRefreshToken) {
+  try {
+    // Generate new tokens
+    const newToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    const newRefreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // Update the user's record with the new refresh token
+    user.token = newToken;
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    return {
+      token: newToken,
+      refreshToken: newRefreshToken,
+    };
+  } catch (error) {
+    throw error;
   }
-  const newToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+}
+
+export async function getTotalUsers() {
+  const totalUsers = await User.countDocuments();
+  const lastFiveUsers = await User.find({}, { avatarURL: 1, _id: 0 })
+    .sort({ _id: -1 })
+    .limit(5);
+
+  const avatars = lastFiveUsers.map(user => user.avatarURL);
+
+  return {
+    totalUsers,
+    lastFiveAvatars: avatars
+  };
+}
+
+export async function verifyEmailService(verificationToken) {
+  const user = await User.findOneAndUpdate(
+    { verificationToken },
+    { $set: { verify: true, verificationToken: null } },
+    { new: true }
+  );
+
+  if (!user) {
+    return { token: null, refreshToken: null };
+  }
+
+  // Generate tokens
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1h",
   });
-  const newRefreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
+  const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: "7d",
   });
-  user.token = newToken;
-  user.refreshToken = newRefreshToken;
+
+  user.token = token;
+  user.refreshToken = refreshToken;
   await user.save();
-  return {
-    token: newToken,
-    refreshToken: newRefreshToken,
+
+  return { token, refreshToken };
+}
+
+export async function uploadAvatar(userId, file) {
+  if (!file) {
+    throw new HttpError(400, "No file uploaded");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  // Delete old avatar from Cloudinary
+  if (user.avatarPublicId) {
+    await cloudinary.uploader.destroy(user.avatarPublicId);
+  }
+
+  // Upload new avatar to Cloudinary
+  const result = await cloudinary.uploader.upload(file.path, {
+    folder: "avatars",
+  });
+
+  user.avatarURL = result.secure_url;
+  user.avatarPublicId = result.public_id;
+  await user.save();
+
+  return user.avatarURL;
+}
+
+export async function requestPasswordResetService(email, host) {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  const resetToken = nanoid();
+  const resetUrl = `http://${host}/api/users/reset-password/${resetToken}`;
+  user.resetToken = resetToken;
+  user.resetTokenExpiration = Date.now() + 3600000; // 1 hour from now
+  await user.save();
+
+  const mailOptions = {
+    to: email,
+    from: "no-reply@example.com",
+    subject: "Password Reset",
+    text: `You requested a password reset. Click the link to reset your password: ${resetUrl}`,
+    html: `<p>You requested a password reset. Click the link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`
   };
+
+  await sgMail.send(mailOptions);
+}
+
+export async function validateResetTokenService(token) {
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() }
+  });
+  return !!user;
+}
+
+export async function resetPasswordService(token, newPassword) {
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() }
+  });
+  if (!user) {
+    return false;
+  }
+
+  user.password = await bcrypt.hash(newPassword, 12);
+  user.resetToken = undefined;
+  user.resetTokenExpiration = undefined;
+  await user.save();
+
+  return true;
 }
