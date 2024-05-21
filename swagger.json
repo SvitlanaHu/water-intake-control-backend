@@ -8,7 +8,7 @@
       "email": "jaycikey@gmail.com"
     }
   },
-  "host": "localhost:3000",
+  "host": "water-intake-control-backend.onrender.com",
   "basePath": "/api",
   "tags": [
     {
@@ -359,6 +359,7 @@
         "produces": [
           "application/json"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "body",
