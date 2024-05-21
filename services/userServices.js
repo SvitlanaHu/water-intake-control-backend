@@ -211,7 +211,7 @@ export async function updateUserSubscription(userId, subscription) {
     { new: true }
   );
   if (!user) {
-    throw ttpError(404, "User not found");
+    throw HttpError(404, "User not found");
   }
   return user;
 }
@@ -282,12 +282,12 @@ export async function verifyEmailService(verificationToken) {
 
 export async function uploadAvatar(userId, file) {
   if (!file) {
-    throw ttpError(400, "No file uploaded");
+    throw HttpError(400, "No file uploaded");
   }
 
   const user = await User.findById(userId);
   if (!user) {
-    throw ttpError(404, "User not found");
+    throw HttpError(404, "User not found");
   }
 
   // Delete old avatar from Cloudinary
@@ -310,7 +310,7 @@ export async function uploadAvatar(userId, file) {
 export async function requestPasswordResetService(email, host) {
   const user = await User.findOne({ email });
   if (!user) {
-    throw ttpError(404, "User not found");
+    throw HttpError(404, "User not found");
   }
 
   const resetToken = nanoid();
