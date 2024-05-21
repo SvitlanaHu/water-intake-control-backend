@@ -177,16 +177,15 @@ export const updateUserDetails = async (userId, updateData, host) => {
   }
 
   return {
-    email: updatedUser.email,
-    nickname: updatedUser.nickname,
-    subscription: updatedUser.subscription,
-    avatarURL: updatedUser.avatarURL,
-    verify: updatedUser.verify,
-    timezone: updatedUser.timezone,
-    gender: updatedUser.gender,
-    weight: updatedUser.weight,
-    activeTime: updatedUser.activeTime,
-    dailyWaterIntake: updatedUser.dailyWaterIntake,
+    message: 'User updated successfully',
+    user: {
+      nickname: updatedUser.nickname,
+      timezone: updatedUser.timezone,
+      gender: updatedUser.gender,
+      weight: updatedUser.weight,
+      activeTime: updatedUser.activeTime,
+      dailyWaterIntake: updatedUser.dailyWaterIntake
+    }
   };
 };
 
@@ -212,7 +211,7 @@ export async function updateUserSubscription(userId, subscription) {
     { new: true }
   );
   if (!user) {
-    throw new HttpError(404, "User not found");
+    throw ttpError(404, "User not found");
   }
   return user;
 }
@@ -283,12 +282,12 @@ export async function verifyEmailService(verificationToken) {
 
 export async function uploadAvatar(userId, file) {
   if (!file) {
-    throw new HttpError(400, "No file uploaded");
+    throw ttpError(400, "No file uploaded");
   }
 
   const user = await User.findById(userId);
   if (!user) {
-    throw new HttpError(404, "User not found");
+    throw ttpError(404, "User not found");
   }
 
   // Delete old avatar from Cloudinary
@@ -311,7 +310,7 @@ export async function uploadAvatar(userId, file) {
 export async function requestPasswordResetService(email, host) {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new HttpError(404, "User not found");
+    throw ttpError(404, "User not found");
   }
 
   const resetToken = nanoid();
