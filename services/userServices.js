@@ -114,28 +114,81 @@ export async function logoutUser(user) {
   await user.save();
 }
 
-export async function updateUserDetails(userId, updateData) {
+export const updateUserDetails = async (userId, updateData, host) => {
   // List of allowed fields for update
-  const allowedFields = ["nickname", "timezone", "gender", "weight", "activeTime", "dailyWaterIntake"];
+  const allowedFields = ["nickname", "email", "timezone", "gender", "weight", "activeTime", "dailyWaterIntake"];
 
   // Check for disallowed fields
   const disallowedFields = Object.keys(updateData).filter(key => !allowedFields.includes(key));
   if (disallowedFields.length > 0) {
-    throw new Error(`Disallowed fields: ${disallowedFields.join(", ")}`);
+    throw HttpError(400, `Disallowed fields: ${disallowedFields.join(", ")}`);
   }
 
-  const user = await User.findByIdAndUpdate(
+  const user = await User.findById(userId);
+  if (!user) {
+    throw HttpError(404, 'User not found');
+  }
+
+  // Check for changes
+  const changes = {};
+  let hasChanges = false;
+
+  allowedFields.forEach(field => {
+    if (updateData[field] !== undefined && updateData[field] !== user[field]) {
+      changes[field] = updateData[field];
+      hasChanges = true;
+    }
+  });
+
+  if (!hasChanges) {
+    throw HttpError(400, 'No changes detected');
+  }
+
+  // Check for email change
+  if (changes.email) {
+    const existingUser = await User.findOne({ email: changes.email.toLowerCase() });
+    if (existingUser && existingUser._id.toString() !== userId) {
+      throw HttpError(409, 'Email already in use');
+    }
+
+    if (changes.email.toLowerCase() !== user.email.toLowerCase()) {
+      changes.email = changes.email.toLowerCase();
+      changes.verify = false;
+      changes.verificationToken = nanoid();
+
+      const verificationUrl = `http://${host}/api/users/verify/${changes.verificationToken}`;
+      const templatePath = path.join(__dirname, '../templates/verificationEmail.html');
+      let htmlContent = await fs.readFile(templatePath, 'utf8');
+      htmlContent = htmlContent.replace('{{verificationUrl}}', verificationUrl);
+
+      await sendEmail(changes.email, 'Verify Your Email', htmlContent);
+    }
+  }
+
+  // Update only modified fields
+  const updatedUser = await User.findByIdAndUpdate(
     userId,
-    updateData,
+    { $set: changes },
     { new: true, runValidators: true }
   );
 
-  if (!user) {
-    throw new Error('User not found');
+  if (!updatedUser) {
+    throw HttpError(500, 'Failed to update user');
   }
 
-  return user;
-}
+  return {
+    email: updatedUser.email,
+    nickname: updatedUser.nickname,
+    subscription: updatedUser.subscription,
+    avatarURL: updatedUser.avatarURL,
+    verify: updatedUser.verify,
+    timezone: updatedUser.timezone,
+    gender: updatedUser.gender,
+    weight: updatedUser.weight,
+    activeTime: updatedUser.activeTime,
+    dailyWaterIntake: updatedUser.dailyWaterIntake,
+  };
+};
 
 export async function getCurrentUser(user) {
   return {
@@ -298,3 +351,27 @@ export async function resetPasswordService(token, newPassword) {
 
   return true;
 }
+
+export const resendVerificationEmailService = async (email, host) => {
+  const lowerCaseEmail = email.toLowerCase();
+  const user = await User.findOne({ email: lowerCaseEmail });
+
+  if (!user) {
+    throw HttpError(404, 'User not found');
+  }
+
+  if (user.verify) {
+    throw HttpError(400, 'Email already verified');
+  }
+
+  const verificationToken = nanoid();
+  user.verificationToken = verificationToken;
+  await user.save();
+
+  const verificationUrl = `http://${host}/api/users/verify/${verificationToken}`;
+  const templatePath = path.join(__dirname, '../templates/verificationEmail.html');
+  let htmlContent = await fs.readFile(templatePath, 'utf8');
+  htmlContent = htmlContent.replace('{{verificationUrl}}', verificationUrl);
+
+  await sendEmail(user.email, 'Verify Your Email', htmlContent);
+};
