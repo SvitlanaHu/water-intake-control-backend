@@ -1,10 +1,18 @@
 import mongoose from "mongoose";
+import moment from "moment-timezone";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, "Email is required"],
     unique: true,
+    validate: {
+      validator: function (email) {
+        return emailRegex.test(email);
+      }, message: props => `${props.value} is not a valid email!`
+    }
   },
   password: {
     type: String,
@@ -34,7 +42,13 @@ const userSchema = new mongoose.Schema({
   },
   timezone: {
     type: String,
-    default: 'UTC' // Додати поле часового поясу зі значенням за замовчуванням 'UTC'
+    default: 'UTC', // Додати поле часового поясу зі значенням за замовчуванням 'UTC'
+    validate: {
+      validator: function (timezone) {
+        return moment.tz.zone(timezone) !== null;
+      },
+      message: props => `${props.value} is not a valid time zone!`
+    }
   },
   nickname: {
     type: String,

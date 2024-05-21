@@ -34,7 +34,16 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/users", usersRouter);
 app.use("/api/water", waterRouter);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: {
+    requestInterceptor: (req) => {
+      if (req.headers.Authorization && !req.headers.Authorization.startsWith('Bearer ')) {
+        req.headers.Authorization = 'Bearer ' + req.headers.Authorization;
+      }
+      return req;
+    }
+  }
+}));
 
 const connectDB = async () => {
   try {
@@ -50,6 +59,17 @@ connectDB();
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
+});
+
+app.use((err, req, res, next) => {
+  if (err.name === 'ValidationError') {
+    return res.status(403).json({
+      message: err.message,
+      errors: err.errors
+    });
+  }
+  const { status = 500, message = "Server error" } = err;
+  res.status(status).json({ message });
 });
 
 app.use((err, req, res, next) => {

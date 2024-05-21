@@ -34,7 +34,7 @@ const usersRouter = express.Router();
 usersRouter.post("/register", validateBody(userRegisterSchema), register);
 usersRouter.post("/login", validateBody(userRegisterSchema), login);
 usersRouter.post("/logout", authenticate, logout);
-usersRouter.patch("/update/:id", authenticate, validateBody(updateUserSchema), updateUser);
+usersRouter.patch("/update", authenticate, validateBody(updateUserSchema), updateUser);
 usersRouter.get('/total', countUniqueUsers);
 usersRouter.get("/current", authenticate, currentUser);
 usersRouter.patch(
