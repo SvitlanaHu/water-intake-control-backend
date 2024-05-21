@@ -198,7 +198,7 @@
             "description": "User not found"
           },
           "400": {
-            "description": "Disallowed fields or email already in use"
+            "description": "Disallowed fields or email already in use or no changes"
           },
           "401": {
             "description": "Not authorized"
