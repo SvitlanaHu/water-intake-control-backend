@@ -11,7 +11,8 @@ import {
   uploadAvatar,
   requestPasswordResetService,
   resetPasswordService,
-  validateResetTokenService
+  validateResetTokenService,
+  resendVerificationEmailService
 } from "../services/userServices.js";
 import User from "../models/User.js";
 import sgMail from "@sendgrid/mail";
@@ -49,23 +50,13 @@ export const logout = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   try {
-    const updatedUser = await updateUserDetails(req.user._id, req.body);
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    const sanitizedUser = {
-      nickname: updatedUser.nickname,
-      timezone: updatedUser.timezone,
-      gender: updatedUser.gender,
-      weight: updatedUser.weight,
-      activeTime: updatedUser.activeTime,
-      dailyWaterIntake: updatedUser.dailyWaterIntake,
-    };
-    res.json({ message: "User updated", user: sanitizedUser });
+    const userId = req.user._id;
+    const updateData = req.body;
+    const host = req.get('host');
+
+    const updatedUser = await updateUserDetails(userId, updateData, host);
+    res.status(200).json(updatedUser);
   } catch (error) {
-    if (error.message.startsWith("Disallowed fields:")) {
-      return res.status(400).json({ message: error.message });
-    }
     next(error);
   }
 };
@@ -118,27 +109,11 @@ export const verifyEmail = async (req, res, next) => {
 };
 
 export const resendVerificationEmail = async (req, res, next) => {
-  const { email } = req.body;
   try {
-    const user = await User.findOne({ email, verify: false });
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ message: "User not found or already verified" });
-    }
-
-    const verificationUrl = `http://${req.headers.host}/api/users/verify/${user.verificationToken}`;
-    const mailOptions = {
-      to: email,
-      from: "jaycikey@gmail.com",
-      subject: "Verify your email",
-      text: `Please click on the following link to verify your email: ${verificationUrl}`,
-      html: `<strong>Please click on the following link to verify your email:</strong> <a href="${verificationUrl}">${verificationUrl}</a>`,
-    };
-
-    await sgMail.send(mailOptions);
-    res.status(200).json({ message: "Verification email sent" });
+    const { email } = req.body;
+    const host = req.get('host');
+    await resendVerificationEmailService(email, host);
+    res.status(200).json({ message: 'Verification email resent' });
   } catch (error) {
     next(error);
   }

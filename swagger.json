@@ -164,13 +164,18 @@
           "User"
         ],
         "summary": "Update user details",
-        "description": "Updates specified user details.",
+        "description": "Updates specified user details. If the email is updated, it will require re-verification.",
         "operationId": "updateUser",
         "consumes": [
           "application/json"
         ],
         "produces": [
           "application/json"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "parameters": [
           {
@@ -193,7 +198,7 @@
             "description": "User not found"
           },
           "400": {
-            "description": "Disallowed fields"
+            "description": "Disallowed fields or email already in use or no changes"
           },
           "401": {
             "description": "Not authorized"
@@ -346,7 +351,7 @@
           "User"
         ],
         "summary": "Resend verification email",
-        "description": "Resends the verification email to the user.",
+        "description": "Resends the verification email to the user. Uses the same template as registration.",
         "operationId": "resendVerificationEmail",
         "consumes": [
           "application/json"
@@ -354,6 +359,7 @@
         "produces": [
           "application/json"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "body",
@@ -903,6 +909,10 @@
       "properties": {
         "nickname": {
           "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
         },
         "timezone": {
           "type": "string"
