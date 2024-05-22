@@ -104,7 +104,9 @@ export const verifyEmail = async (req, res, next) => {
     const redirectUrl = `https://${process.env.FRONTEND_URL}/verify?token=${token}&refreshToken=${refreshToken}`;
     res.redirect(redirectUrl);
   } catch (error) {
-    next(error);
+    // Redirect to frontend with error message
+    const redirectUrl = `https://${process.env.FRONTEND_URL}/verify?error=${encodeURIComponent(error.message)}`;
+    res.redirect(redirectUrl);
   }
 };
 

@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import HttpError from "../helpers/HttpError.js";
 import { nanoid } from "nanoid";
 import sgMail from "@sendgrid/mail";
+import { v2 as cloudinary } from 'cloudinary';
 
 // Workaround for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
