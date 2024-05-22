@@ -97,7 +97,9 @@ export const verifyEmail = async (req, res, next) => {
     const { token, refreshToken } = await verifyEmailService(verificationToken);
 
     if (!token || !refreshToken) {
-      return res.status(404).json({ message: "User not found" });
+      const redirectUrl = `https://${process.env.FRONTEND_URL}/verify?error=User%20not%20found`;
+      console.log(`Redirecting to: ${redirectUrl}`);
+      return res.redirect(302, redirectUrl);
     }
 
     // Redirect to frontend with tokens
