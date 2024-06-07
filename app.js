@@ -21,7 +21,6 @@ const __dirname = path.dirname(__filename);
 
 
 
-
 app.use(morgan("tiny"));
 app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
