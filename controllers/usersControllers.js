@@ -169,13 +169,15 @@ export const validateResetToken = async (req, res, next) => {
     const isValid = await validateResetTokenService(token);
 
     if (isValid) {
-      const redirectUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+      const redirectUrl = `https://${process.env.FRONTEND_URL}/reset-password?token=${token}`;
       res.redirect(redirectUrl);
     } else {
-      res.status(400).json({ message: "Invalid or expired token" });
+      const redirectUrl = `https://${process.env.FRONTEND_URL}/reset-password?error=Invalid%20or%20expired%20token`;
+      res.redirect(redirectUrl);
     }
   } catch (error) {
-    next(error);
+    const redirectUrl = `https://${process.env.FRONTEND_URL}/reset-password?error=${encodeURIComponent(error.message)}`;
+    res.redirect(redirectUrl);
   }
 };
 
@@ -185,11 +187,14 @@ export const resetPassword = async (req, res, next) => {
     const resetSuccess = await resetPasswordService(token, newPassword);
 
     if (resetSuccess) {
-      res.status(200).json({ message: "Password reset successful" });
+      const redirectUrl = `https://${process.env.FRONTEND_URL}/reset-password-success`;
+      res.redirect(redirectUrl);
     } else {
-      res.status(400).json({ message: "Invalid or expired token" });
+      const redirectUrl = `https://${process.env.FRONTEND_URL}/reset-password?error=Invalid%20or%20expired%20token`;
+      res.redirect(redirectUrl);
     }
   } catch (error) {
-    next(error);
+    const redirectUrl = `https://${process.env.FRONTEND_URL}/reset-password?error=${encodeURIComponent(error.message)}`;
+    res.redirect(redirectUrl);
   }
 };
